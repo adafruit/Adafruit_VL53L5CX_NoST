@@ -5,6 +5,7 @@
  */
 
 #include "Adafruit_VL53L5CX_NoST.h"
+#include "../hw_test_helper.h"
 
 Adafruit_VL53L5CX_NoST sensor;
 
@@ -27,11 +28,11 @@ bool tryRange(const char *label) {
     delay(10);
   }
   uint8_t dbg[4];
-  Wire1.beginTransmission(0x29);
-  Wire1.write((uint8_t)0x00); Wire1.write((uint8_t)0x00);
-  Wire1.endTransmission(false);
-  Wire1.requestFrom((uint8_t)0x29, (uint8_t)4);
-  for (int k = 0; k < 4; k++) dbg[k] = Wire1.read();
+  HW_TEST_WIRE.beginTransmission(0x29);
+  HW_TEST_WIRE.write((uint8_t)0x00); HW_TEST_WIRE.write((uint8_t)0x00);
+  HW_TEST_WIRE.endTransmission(false);
+  HW_TEST_WIRE.requestFrom((uint8_t)0x29, (uint8_t)4);
+  for (int k = 0; k < 4; k++) dbg[k] = HW_TEST_WIRE.read();
   Serial.print(F(" FAIL raw: "));
   for (int k = 0; k < 4; k++) {
     Serial.print(F("0x")); Serial.print(dbg[k], HEX); Serial.print(F(" "));
@@ -42,7 +43,7 @@ bool tryRange(const char *label) {
 }
 
 bool initSensor() {
-  return sensor.begin(0x29, &Wire1);
+  return sensor.begin(0x29, &HW_TEST_WIRE);
 }
 
 void setup() {
@@ -51,8 +52,8 @@ void setup() {
 
   Serial.println(F("=== HW Test 11: Range Bisect (isolated) ===\n"));
 
-  Wire1.begin(SDA1, SCL1);
-  Wire1.setClock(400000);
+  HW_TEST_I2C_INIT();
+  
 
   // Test each setter in isolation (re-init between each)
 

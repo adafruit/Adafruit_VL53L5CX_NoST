@@ -8,6 +8,7 @@
  */
 
 #include "Adafruit_VL53L5CX_NoST.h"
+#include "../hw_test_helper.h"
 
 Adafruit_VL53L5CX_NoST sensor;
 
@@ -31,11 +32,11 @@ void setup() {
 
   Serial.println(F("=== HW Test 10: Config ===\n"));
 
-  Wire1.begin(SDA1, SCL1);
-  Wire1.setClock(400000);
+  HW_TEST_I2C_INIT();
+  
 
   // Test 1: begin
-  bool initOk = sensor.begin(0x29, &Wire1);
+  bool initOk = sensor.begin(0x29, &HW_TEST_WIRE);
   report("1. begin()", initOk);
   if (!initOk) { while (1) delay(10); }
 
@@ -131,7 +132,7 @@ void setup() {
 
   // Config for 8x8 (fresh init to reset sensor state)
   delay(500);
-  bool reinit = sensor.begin(0x29, &Wire1);
+  bool reinit = sensor.begin(0x29, &HW_TEST_WIRE);
   Serial.print(F("   Re-init: ")); Serial.println(reinit ? F("OK") : F("FAIL"));
   sensor.setResolution(64);
   sensor.setRangingFrequency(15);
