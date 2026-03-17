@@ -865,19 +865,12 @@ uint32_t Adafruit_VL53L5CX_NoST::getIntegrationTime() {
 }
 
 bool Adafruit_VL53L5CX_NoST::setSharpenerPercent(uint8_t pct) {
-  if (!_initialized) {
+  if (!_initialized || pct >= 100) {
     return false;
   }
-  uint8_t zones = (_resolution == VL53L5_RESOLUTION_4X4) ? 16 : 64;
-  uint8_t buf[16];
-  if (!_dciRead(VL53L5_DCI_SHARPENER, buf, 16)) {
-    return false;
-  }
-  // Sharpener target is stored as percentage * 256 / 100 at each zone offset
-  for (uint8_t i = 0; i < zones; i++) {
-    buf[i] = (pct * 256) / 100;
-  }
-  return _dciWrite(buf, VL53L5_DCI_SHARPENER, 16);
+  // Mirrors vl53l5cx_set_sharpener_percent: 1 byte at offset 0x0D
+  uint8_t sharpener = (uint8_t)(((uint16_t)pct * 255) / 100);
+  return _dciReplace(VL53L5_DCI_SHARPENER, 16, &sharpener, 1, 0x0D);
 }
 
 uint8_t Adafruit_VL53L5CX_NoST::getSharpenerPercent() {
@@ -888,26 +881,27 @@ uint8_t Adafruit_VL53L5CX_NoST::getSharpenerPercent() {
   if (!_dciRead(VL53L5_DCI_SHARPENER, buf, 16)) {
     return 0xFF;
   }
-  return (buf[0] * 100) / 256;
+  return (uint8_t)(((uint16_t)buf[0x0D] * 100) / 255);
 }
 
 bool Adafruit_VL53L5CX_NoST::setTargetOrder(uint8_t order) {
-  if (!_initialized) {
+  if (!_initialized ||
+      (order != VL53L5_TARGET_ORDER_CLOSEST &&
+       order != VL53L5_TARGET_ORDER_STRONGEST)) {
     return false;
   }
-  uint32_t val = order;
-  return _dciReplace(VL53L5_DCI_TARGET_ORDER, 4, (uint8_t *)&val, 4, 0);
+  return _dciReplace(VL53L5_DCI_TARGET_ORDER, 4, &order, 1, 0x00);
 }
 
 uint8_t Adafruit_VL53L5CX_NoST::getTargetOrder() {
   if (!_initialized) {
     return 0;
   }
-  uint32_t val = 0;
-  if (!_dciRead(VL53L5_DCI_TARGET_ORDER, (uint8_t *)&val, 4)) {
+  uint8_t buf[4] = {0};
+  if (!_dciRead(VL53L5_DCI_TARGET_ORDER, buf, 4)) {
     return 0;
   }
-  return (uint8_t)val;
+  return buf[0x00];
 }
 
 bool Adafruit_VL53L5CX_NoST::setRangingMode(uint8_t mode) {
