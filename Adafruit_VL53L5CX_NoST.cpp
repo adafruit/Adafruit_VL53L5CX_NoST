@@ -176,7 +176,7 @@ bool Adafruit_VL53L5CX_NoST::_dciRead(uint16_t index, uint8_t *data,
     return false;
   }
   _swapBuffer(_temp, size + 12);
-  memcpy(data, _temp + 4, size);
+  memmove(data, _temp + 4, size);  // data may be _temp (overlapping)
   return true;
 }
 
@@ -205,7 +205,8 @@ bool Adafruit_VL53L5CX_NoST::_dciWrite(const uint8_t *data, uint16_t index,
 
   // Swap data in a local copy (ST swaps the input buffer in place and
   // restores it after; we copy to _temp to avoid mutating caller's data)
-  memcpy(&_temp[4], data, size);
+  // Use memmove because _dciReplace passes data=_temp (overlapping)
+  memmove(&_temp[4], data, size);
   _swapBuffer(&_temp[4], size);
 
   // Assemble frame: header + swapped data + footer

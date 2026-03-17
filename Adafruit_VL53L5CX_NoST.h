@@ -103,7 +103,7 @@ union Block_header {
 
 // Temp buffer — shared for DCI ops. Minimum 1024, or max results size.
 // For lite driver we use a fixed 1024 byte buffer.
-#define VL53L5_TEMP_BUFFER_SIZE 1024
+#define VL53L5_TEMP_BUFFER_SIZE 2048
 
 /*!
  * @brief Lightweight driver for VL53L5CX ToF sensor using Adafruit BusIO
